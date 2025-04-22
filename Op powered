@@ -15,13 +15,14 @@ OrionLib:MakeNotification({
     Time = 5
 })
 
--- Utility Tab
+-- Utility Tab for general scripts
 local utilityTab = Window:MakeTab({
     Name = "Utility 🛠️",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
 
+-- Add general Utility Scripts
 utilityTab:AddButton({
     Name = "🦅 FLY SCRIPT",
     Callback = function()
@@ -70,6 +71,81 @@ utilityTab:AddToggle({
         end
     end
 })
+
+-- Combat Tab
+local combatTab = Window:MakeTab({
+    Name = "Combat 🎯",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Aimbot Toggle
+combatTab:AddToggle({
+    Name = "🎯 Enable Aimbot",
+    Default = false,
+    Callback = function(state)
+        _G.AimbotEnabled = state
+    end
+})
+
+combatTab:AddToggle({
+    Name = "🤫 Silent Aim",
+    Default = false,
+    Callback = function(state)
+        _G.SilentAim = state
+    end
+})
+
+-- Aimbot Logic to watch only the head
+local function getClosestPlayer()
+    local closestPlayer = nil
+    local shortestDistance = math.huge -- Set to a large number initially
+    local localPlayer = game.Players.LocalPlayer
+    local camera = workspace.CurrentCamera
+
+    -- Iterate through all players in the game
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            local head = player.Character.Head
+            local distance = (camera.CFrame.Position - head.Position).Magnitude
+            if distance < shortestDistance then
+                closestPlayer = player
+                shortestDistance = distance
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+local function aimAtHead(player)
+    if not player or not player.Character then return end
+    local camera = workspace.CurrentCamera
+    local head = player.Character:FindFirstChild("Head")
+
+    if head then
+        local targetPosition = head.Position
+        local direction = (targetPosition - camera.CFrame.Position).unit
+        local lookAtCFrame = CFrame.new(camera.CFrame.Position, targetPosition)
+        camera.CFrame = lookAtCFrame
+    end
+end
+
+-- Aim and stop at the closest player's head if Aimbot is enabled
+game:GetService("RunService").RenderStepped:Connect(function()
+    if _G.AimbotEnabled then
+        local closestPlayer = getClosestPlayer()
+
+        if closestPlayer and closestPlayer.Character then
+            aimAtHead(closestPlayer)
+
+            if _G.SilentAim then
+                -- Apply silent aim: Adjust shooting direction (the function may differ based on the game's mechanics)
+                -- This typically modifies the gun's fire direction, which is game-dependent.
+            end
+        end
+    end
+end)
 
 -- Farming Tab
 local farmingTab = Window:MakeTab({
@@ -120,79 +196,6 @@ adminTab:AddButton({
     Name = "🌐 UNIVERSAL SCRIPT",
     Callback = function()
         loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-nameless-admin-15646"))()
-    end
-})
-
--- Combat Tab
-local combatTab = Window:MakeTab({
-    Name = "Combat 🎯",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
--- Aimbot Toggle
-combatTab:AddToggle({
-    Name = "🎯 Enable Aimbot",
-    Default = false,
-    Callback = function(state)
-        _G.AimbotEnabled = state
-    end
-})
-
-combatTab:AddToggle({
-    Name = "🤫 Silent Aim",
-    Default = false,
-    Callback = function(state)
-        _G.SilentAim = state
-    end
-})
-
-combatTab:AddToggle({
-    Name = "🖱️ Trigger Bot",
-    Default = false,
-    Callback = function(state)
-        _G.TriggerBot = state
-    end
-})
-
-combatTab:AddToggle({
-    Name = "📦 Hitbox Expander",
-    Default = false,
-    Callback = function(state)
-        _G.HitboxExpand = state
-    end
-})
-
--- Visual FOV Circle
-local fovCircle = Drawing.new("Circle")
-fovCircle.Radius = 100
-fovCircle.Thickness = 2
-fovCircle.Color = Color3.fromRGB(0, 170, 255)
-fovCircle.Filled = false
-fovCircle.Visible = false
-
-game:GetService("RunService").RenderStepped:Connect(function()
-    if fovCircle.Visible then
-        local mouse = game.Players.LocalPlayer:GetMouse()
-        fovCircle.Position = Vector2.new(mouse.X, mouse.Y + 36)
-    end
-end)
-
-combatTab:AddToggle({
-    Name = "🔵 Show FOV Circle",
-    Default = false,
-    Callback = function(state)
-        fovCircle.Visible = state
-    end
-})
-
-combatTab:AddSlider({
-    Name = "🎚️ FOV Radius",
-    Min = 50,
-    Max = 300,
-    Default = 100,
-    Callback = function(v)
-        fovCircle.Radius = v
     end
 })
 
