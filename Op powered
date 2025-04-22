@@ -96,8 +96,8 @@ combatTab:AddToggle({
     end
 })
 
--- Aimbot Logic to watch only the head
-local function getClosestPlayer()
+-- Aimbot Logic to target enemy player's head
+local function getClosestEnemyInPlace()
     local closestPlayer = nil
     local shortestDistance = math.huge -- Set to a large number initially
     local localPlayer = game.Players.LocalPlayer
@@ -105,12 +105,23 @@ local function getClosestPlayer()
 
     -- Iterate through all players in the game
     for _, player in pairs(game.Players:GetPlayers()) do
+        -- Skip the local player and dead players
         if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            local head = player.Character.Head
-            local distance = (camera.CFrame.Position - head.Position).Magnitude
-            if distance < shortestDistance then
-                closestPlayer = player
-                shortestDistance = distance
+            -- If the player is alive and is not the local player, check if they are an enemy
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                -- Check if the player is not a teammate (you can modify this condition based on team system)
+                if player.Team ~= localPlayer.Team then
+                    -- Check if the player is within a specific distance (e.g., within 100 studs)
+                    local distance = (camera.CFrame.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                    if distance < 100 then  -- You can adjust the distance value as needed
+                        -- Target the closest enemy
+                        if distance < shortestDistance then
+                            closestPlayer = player
+                            shortestDistance = distance
+                        end
+                    end
+                end
             end
         end
     end
@@ -131,13 +142,13 @@ local function aimAtHead(player)
     end
 end
 
--- Aim and stop at the closest player's head if Aimbot is enabled
+-- Aim at the closest enemy's head if Aimbot is enabled
 game:GetService("RunService").RenderStepped:Connect(function()
     if _G.AimbotEnabled then
-        local closestPlayer = getClosestPlayer()
+        local closestEnemy = getClosestEnemyInPlace()
 
-        if closestPlayer and closestPlayer.Character then
-            aimAtHead(closestPlayer)
+        if closestEnemy and closestEnemy.Character then
+            aimAtHead(closestEnemy)
 
             if _G.SilentAim then
                 -- Apply silent aim: Adjust shooting direction (the function may differ based on the game's mechanics)
@@ -222,6 +233,15 @@ customizationTab:AddToggle({
         print("Anti-Detection: " .. (State and "ON" or "OFF"))
     end
 })
+
+-- Preserve the state after reset or death
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    -- Reinitialize the Aimbot state
+    if _G.AimbotEnabled then
+        print("Re-enabling Aimbot after respawn")
+        -- You can also re-enable other features here as needed
+    end
+end)
 
 -- Initialize GUI
 OrionLib:Init()
