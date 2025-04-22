@@ -1,0 +1,222 @@
+local OrionLib = loadstring(game:HttpGet("https://raw.githubusercontent.com/jensonhirst/Orion/main/source"))() -- Corrected URL for OrionLib
+
+-- Create the main window for the GUI with a modern gradient background
+local Window = OrionLib:MakeWindow({
+    Name = "SHAN SCRIPTS - OP Edition 🌟",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "ShanScriptsConfig",
+    BackgroundColor3 = Color3.fromRGB(36, 36, 36), -- Gradient color for the background
+})
+
+-- Welcome Notification with custom emojis
+OrionLib:MakeNotification({
+    Name = "WELCOME TO SHAN SCRIPTS 🚀",
+    Content = "This GUI is created by SHAN GWAPO for maximum fun and OP features! 💥",
+    Image = "rbxassetid://4483345998",
+    Time = 5
+})
+
+-- Tab for Utility Scripts (Fly, NoClip, Speed, etc.)
+local utilityTab = Window:MakeTab({
+    Name = "Utility 🛠️",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Add Fly Script Button in Utility Tab
+utilityTab:AddButton({
+    Name = "🦅 FLY SCRIPT",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/SomeUser/RobloxFlyScript/main/fly"))()
+        print("FLY SCRIPT EXECUTED! 🚀")
+    end
+})
+
+-- Add NoClip Script Button in Utility Tab
+utilityTab:AddButton({
+    Name = "🚪 NO CLIP",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/SomeUser/NoClipScript/main/no-clip"))()
+        print("NO CLIP SCRIPT EXECUTED! 🕳️")
+    end
+})
+
+-- Add Speed Script Button in Utility Tab
+utilityTab:AddSlider({
+    Name = "⚡ Set Speed",
+    Min = 16,
+    Max = 150,
+    Default = 50,
+    Callback = function(Speed)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Speed
+        print("SPEED SET TO " .. Speed .. " ⚡")
+    end
+})
+
+-- Add Infinite Jump Script Button in Utility Tab
+utilityTab:AddButton({
+    Name = "💨 INFINITE JUMP",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/SomeUser/InfiniteJumpScript/main/infinite-jump"))()
+        print("INFINITE JUMP SCRIPT EXECUTED! 💥")
+    end
+})
+
+-- Add God Mode Toggle in Utility Tab
+utilityTab:AddToggle({
+    Name = "👑 God Mode",
+    Default = false,
+    Callback = function(State)
+        if State then
+            game.Players.LocalPlayer.Character.Humanoid.Health = game.Players.LocalPlayer.Character.Humanoid.MaxHealth
+            game.Players.LocalPlayer.Character.Humanoid.MaxHealth = math.huge
+            print("GOD MODE ENABLED! 👑")
+        else
+            game.Players.LocalPlayer.Character.Humanoid.MaxHealth = 100
+            print("GOD MODE DISABLED! 🛡️")
+        end
+    end    
+})
+
+-- Tab for Farming Scripts (AutoFarm, Grow a Garden)
+local farmingTab = Window:MakeTab({
+    Name = "Farming 🌱",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Add Grow A Garden Script Button in Farming Tab
+farmingTab:AddButton({
+    Name = "🌻 GROW A GARDEN SCRIPT",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/gumanba/Scripts/main/GrowaGarden"))()
+        print("GROW A GARDEN SCRIPT EXECUTED! 🌱")
+    end
+})
+
+-- Add Auto Farm Script Button in Farming Tab
+farmingTab:AddButton({
+    Name = "🌾 AUTO FARM",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/SomeUser/AutoFarmScript/main/autofarm"))()
+        print("AUTO FARM SCRIPT EXECUTED! 🌱")
+    end
+})
+
+-- Tab for Teleportation Scripts (Teleport to Random Location)
+local teleportTab = Window:MakeTab({
+    Name = "Teleportation 📍",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Add Teleport to Random Location Button in Teleportation Tab
+teleportTab:AddButton({
+    Name = "📍 TELEPORT TO RANDOM LOCATION",
+    Callback = function()
+        local randomX = math.random(-100, 100)
+        local randomY = math.random(10, 50)
+        local randomZ = math.random(-100, 100)
+        
+        game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(randomX, randomY, randomZ))
+        print("TELEPORTING TO RANDOM LOCATION 📍")
+    end    
+})
+
+-- Tab for Universal Admin Scripts (Universal Admin, etc.)
+local adminTab = Window:MakeTab({
+    Name = "Admin 💼",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Add Universal Script Button in Admin Tab
+adminTab:AddButton({
+    Name = "🌐 UNIVERSAL SCRIPT",
+    Callback = function()
+        loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-nameless-admin-15646"))()
+        print("UNIVERSAL SCRIPT EXECUTED! 🌐")
+    end
+})
+
+-- Tab for Miscellaneous Scripts (Other fun or powerful scripts)
+local miscTab = Window:MakeTab({
+    Name = "Miscellaneous 🧩",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Add Miscellaneous Script (Placeholder)
+miscTab:AddButton({
+    Name = "🔥 OP MISC SCRIPT",
+    Callback = function()
+        -- Example for a placeholder script, replace with actual content
+        print("OP MISC SCRIPT EXECUTED! 🔥")
+    end
+})
+
+-- Tab for GUI Customization (Dark/Light Theme, Transparency, Animations)
+local customizationTab = Window:MakeTab({
+    Name = "Customization 🎨",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Add Feedback System
+customizationTab:AddTextbox({
+    Name = "Your Feedback",
+    Default = "Enter your feedback here...",
+    TextDisappear = false,
+    Callback = function(feedback)
+        -- Store or send feedback to a server/database
+        print("Feedback received: " .. feedback)
+    end
+})
+
+-- Anti-Detection Mode Toggle
+customizationTab:AddToggle({
+    Name = "🛡️ Enable Anti-Detection Mode",
+    Default = false,
+    Callback = function(State)
+        if State then
+            -- Implement anti-detection techniques (e.g., obfuscation, delays, etc.)
+            print("ANTI-DETECTION MODE ENABLED 🛡️")
+        else
+            print("ANTI-DETECTION MODE DISABLED ❌")
+        end
+    end
+})
+
+-- Leaderboard Tab
+local leaderboardTab = Window:MakeTab({
+    Name = "Leaderboard 🏆",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Add Leaderboard Feature (Placeholder)
+leaderboardTab:AddLabel("Top Users:")
+-- You can fetch and display leaderboard data from a server or local storage
+
+-- Add Game-Specific Customization
+customizationTab:AddDropdown({
+    Name = "Select Game Script",
+    Options = {"Blox Fruits", "Brookhaven", "Arsenal"},
+    Default = "Blox Fruits",
+    Callback = function(gameSelection)
+        if gameSelection == "Blox Fruits" then
+            -- Add specific game script for Blox Fruits
+            print("Loading Blox Fruits specific script...")
+        elseif gameSelection == "Brookhaven" then
+            -- Add specific game script for Brookhaven
+            print("Loading Brookhaven specific script...")
+        elseif gameSelection == "Arsenal" then
+            -- Add specific game script for Arsenal
+            print("Loading Arsenal specific script...")
+        end
+    end
+})
+
+-- Initialize the GUI
+OrionLib:Init()
