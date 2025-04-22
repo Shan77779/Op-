@@ -15,14 +15,124 @@ OrionLib:MakeNotification({
     Time = 5
 })
 
--- Utility Tab for general scripts
+-- Combat Tab
+local combatTab = Window:MakeTab({
+    Name = "Combat 🎯",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Aimbot Toggle
+combatTab:AddToggle({
+    Name = "🎯 Enable Aimbot",
+    Default = false,
+    Callback = function(state)
+        _G.AimbotEnabled = state
+    end
+})
+
+combatTab:AddToggle({
+    Name = "🤫 Silent Aim",
+    Default = false,
+    Callback = function(state)
+        _G.SilentAim = state
+    end
+})
+
+-- Function to find the closest enemy within range (set to 60 studs)
+local function getClosestEnemyInPlace()
+    local closestPlayer = nil
+    local shortestDistance = math.huge  -- Set to a large number initially
+    local localPlayer = game.Players.LocalPlayer
+    local camera = workspace.CurrentCamera
+
+    -- Iterate through all players in the game
+    for _, player in pairs(game.Players:GetPlayers()) do
+        -- Skip the local player and dead players
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") then
+            -- If the player is alive and is not the local player, check if they are an enemy
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid and humanoid.Health > 0 then
+                -- Check if the player is not a teammate
+                if player.Team ~= localPlayer.Team then
+                    -- Calculate the distance from the local player's head
+                    local distance = (camera.CFrame.Position - player.Character.Head.Position).Magnitude
+                    -- Only consider enemies within a range of 60 studs
+                    if distance <= 60 then
+                        -- Target the closest enemy
+                        if distance < shortestDistance then
+                            closestPlayer = player
+                            shortestDistance = distance
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+-- Function to smoothly aim at the enemy's head
+local function smoothAimAtHead(player)
+    if not player or not player.Character then return end
+    local camera = workspace.CurrentCamera
+    local head = player.Character:FindFirstChild("Head")
+
+    if head then
+        local targetPosition = head.Position
+        local currentPosition = camera.CFrame.Position
+        local direction = (targetPosition - currentPosition).unit
+        local lookAtCFrame = CFrame.new(currentPosition, targetPosition)
+
+        -- Smoothly interpolate the camera's CFrame towards the target
+        camera.CFrame = camera.CFrame:Lerp(lookAtCFrame, 0.15)  -- Adjust 0.15 for the smoothing factor
+    end
+end
+
+-- Function to simulate shooting (with Silent Aim modification)
+local function autoFire()
+    -- Simulate mouse button down (fire)
+    local mouse = game.Players.LocalPlayer:GetMouse()
+    local mouseClickEvent = game:GetService("ReplicatedStorage").RemoteEvents.MouseClick -- Replace with correct event
+    if mouseClickEvent then
+        if _G.SilentAim then
+            -- Apply silent aim by slightly adjusting the shooting direction
+            local closestEnemy = getClosestEnemyInPlace()
+            if closestEnemy and closestEnemy.Character then
+                -- Slightly adjust the shot's direction to guarantee a hit on the enemy
+                local targetPosition = closestEnemy.Character.Head.Position
+                local shotPosition = targetPosition + Vector3.new(math.random(-0.5, 0.5), math.random(-0.5, 0.5), math.random(-0.5, 0.5))
+                mouseClickEvent:FireServer(shotPosition) -- Trigger the shot
+            end
+        else
+            mouseClickEvent:FireServer(mouse.Hit.Position) -- Triggering the shot without modification
+        end
+    end
+end
+
+-- Aimbot targeting logic to only aim at the closest player within range (60 studs) and automatically fire
+game:GetService("RunService").RenderStepped:Connect(function()
+    if _G.AimbotEnabled then
+        local closestEnemy = getClosestEnemyInPlace()
+
+        if closestEnemy and closestEnemy.Character then
+            smoothAimAtHead(closestEnemy)
+
+            -- Automatically fire when an enemy is locked on
+            autoFire()
+        end
+    end
+end)
+
+-- Add general Utility Scripts
 local utilityTab = Window:MakeTab({
     Name = "Utility 🛠️",
     Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
 
--- Add general Utility Scripts
+-- Utility scripts (e.g., fly, noclip, custom speed)
 utilityTab:AddButton({
     Name = "🦅 FLY SCRIPT",
     Callback = function()
@@ -49,114 +159,64 @@ utilityTab:AddTextbox({
     end
 })
 
-utilityTab:AddButton({
-    Name = "💨 INFINITE JUMP",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/SomeUser/InfiniteJumpScript/main/infinite-jump"))()
-    end
-})
-
+-- God Mode Toggle
 utilityTab:AddToggle({
     Name = "👑 God Mode",
     Default = false,
     Callback = function(State)
         local char = game.Players.LocalPlayer.Character
         if char and char:FindFirstChild("Humanoid") then
+            local humanoid = char:FindFirstChild("Humanoid")
+            
             if State then
-                char.Humanoid.Health = char.Humanoid.MaxHealth
-                char.Humanoid.MaxHealth = math.huge
-            else
-                char.Humanoid.MaxHealth = 100
-            end
-        end
-    end
-})
-
--- Combat Tab
-local combatTab = Window:MakeTab({
-    Name = "Combat 🎯",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
--- Aimbot Toggle
-combatTab:AddToggle({
-    Name = "🎯 Enable Aimbot",
-    Default = false,
-    Callback = function(state)
-        _G.AimbotEnabled = state
-    end
-})
-
-combatTab:AddToggle({
-    Name = "🤫 Silent Aim",
-    Default = false,
-    Callback = function(state)
-        _G.SilentAim = state
-    end
-})
-
--- Aimbot Logic to target enemy player's head
-local function getClosestEnemyInPlace()
-    local closestPlayer = nil
-    local shortestDistance = math.huge -- Set to a large number initially
-    local localPlayer = game.Players.LocalPlayer
-    local camera = workspace.CurrentCamera
-
-    -- Iterate through all players in the game
-    for _, player in pairs(game.Players:GetPlayers()) do
-        -- Skip the local player and dead players
-        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            -- If the player is alive and is not the local player, check if they are an enemy
-            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid and humanoid.Health > 0 then
-                -- Check if the player is not a teammate (you can modify this condition based on team system)
-                if player.Team ~= localPlayer.Team then
-                    -- Check if the player is within a specific distance (e.g., within 100 studs)
-                    local distance = (camera.CFrame.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                    if distance < 100 then  -- You can adjust the distance value as needed
-                        -- Target the closest enemy
-                        if distance < shortestDistance then
-                            closestPlayer = player
-                            shortestDistance = distance
-                        end
+                -- Set MaxHealth to a very high value and set Health to MaxHealth
+                humanoid.MaxHealth = math.huge
+                humanoid.Health = humanoid.MaxHealth
+                
+                -- Prevent health from decreasing by resetting it to MaxHealth on damage
+                humanoid.HealthChanged:Connect(function()
+                    if humanoid.Health < humanoid.MaxHealth then
+                        humanoid.Health = humanoid.MaxHealth
                     end
-                end
+                end)
+            else
+                -- Reset health to default values
+                humanoid.MaxHealth = 100
+                humanoid.Health = humanoid.MaxHealth
             end
         end
     end
+})
 
-    return closestPlayer
-end
+-- Infinite Jump Toggle
+local infiniteJumpEnabled = false
+local UserInputService = game:GetService("UserInputService")
 
-local function aimAtHead(player)
-    if not player or not player.Character then return end
-    local camera = workspace.CurrentCamera
-    local head = player.Character:FindFirstChild("Head")
-
-    if head then
-        local targetPosition = head.Position
-        local direction = (targetPosition - camera.CFrame.Position).unit
-        local lookAtCFrame = CFrame.new(camera.CFrame.Position, targetPosition)
-        camera.CFrame = lookAtCFrame
-    end
-end
-
--- Aim at the closest enemy's head if Aimbot is enabled
-game:GetService("RunService").RenderStepped:Connect(function()
-    if _G.AimbotEnabled then
-        local closestEnemy = getClosestEnemyInPlace()
-
-        if closestEnemy and closestEnemy.Character then
-            aimAtHead(closestEnemy)
-
-            if _G.SilentAim then
-                -- Apply silent aim: Adjust shooting direction (the function may differ based on the game's mechanics)
-                -- This typically modifies the gun's fire direction, which is game-dependent.
+-- Listen for jump requests
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    -- Check if the jump key was pressed
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Space then
+        if infiniteJumpEnabled then
+            -- If Infinite Jump is enabled, simulate jump
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("Humanoid") then
+                local humanoid = char:FindFirstChild("Humanoid")
+                humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+                humanoid:Move(Vector3.new(0, 50, 0))  -- Apply upward force
             end
         end
     end
 end)
+
+-- Toggle Infinite Jump
+utilityTab:AddToggle({
+    Name = "💨 Infinite Jump",
+    Default = false,
+    Callback = function(state)
+        infiniteJumpEnabled = state
+    end
+})
 
 -- Farming Tab
 local farmingTab = Window:MakeTab({
@@ -209,39 +269,6 @@ adminTab:AddButton({
         loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-nameless-admin-15646"))()
     end
 })
-
--- Game-Specific Script Selector
-local customizationTab = Window:MakeTab({
-    Name = "Customization 🎨",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
-customizationTab:AddDropdown({
-    Name = "Select Game Script",
-    Options = {"Blox Fruits", "Brookhaven", "Arsenal"},
-    Default = "Blox Fruits",
-    Callback = function(selection)
-        print("Game selected: " .. selection)
-    end
-})
-
-customizationTab:AddToggle({
-    Name = "🛡️ Enable Anti-Detection Mode",
-    Default = false,
-    Callback = function(State)
-        print("Anti-Detection: " .. (State and "ON" or "OFF"))
-    end
-})
-
--- Preserve the state after reset or death
-game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
-    -- Reinitialize the Aimbot state
-    if _G.AimbotEnabled then
-        print("Re-enabling Aimbot after respawn")
-        -- You can also re-enable other features here as needed
-    end
-end)
 
 -- Initialize GUI
 OrionLib:Init()
