@@ -5,24 +5,26 @@ local Window = OrionLib:MakeWindow({
     HidePremium = false,
     SaveConfig = true,
     ConfigFolder = "ShanScriptsConfig",
-    BackgroundColor3 = Color3.fromRGB(36, 36, 36),
+    IntroText = "SHAN GWAPO - OP Mode Enabled 🔥",
+    CloseCallback = function()
+        OrionLib:MakeNotification({
+            Name = "See You Again 👋",
+            Content = "GUI closed. Reopen with RightShift!",
+            Time = 3
+        })
+    end
 })
 
 OrionLib:MakeNotification({
     Name = "WELCOME TO SHAN SCRIPTS 🚀",
-    Content = "This GUI is created by SHAN GWAPO for maximum fun and OP features! 💥",
+    Content = "Created by SHAN GWAPO for max power! 💥",
     Image = "rbxassetid://4483345998",
     Time = 5
 })
 
--- Utility Tab for general scripts
-local utilityTab = Window:MakeTab({
-    Name = "Utility 🛠️",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Utility Tab 🛠️
+local utilityTab = Window:MakeTab({ Name = "Utility 🛠️", Icon = "rbxassetid://4483345998", PremiumOnly = false })
 
--- Add general Utility Scripts
 utilityTab:AddButton({
     Name = "🦅 FLY SCRIPT",
     Callback = function()
@@ -72,87 +74,93 @@ utilityTab:AddToggle({
     end
 })
 
--- Combat Tab
-local combatTab = Window:MakeTab({
-    Name = "Combat 🎯",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
+-- FPS Booster 🎮 (Converted to toggles in Utility tab)
+utilityTab:AddToggle({
+    Name = "🎮 FPS Unlocker",
+    Default = false,
+    Callback = function(state)
+        if state then
+            setfpscap(1000)
+        else
+            setfpscap(60)
+        end
+    end
 })
 
--- Aimbot Toggle
+utilityTab:AddToggle({
+    Name = "🌫️ Lighting Reducer",
+    Default = false,
+    Callback = function(state)
+        if state then
+            game.Lighting.FogEnd = 100000
+            game.Lighting.GlobalShadows = false
+            game.Lighting.Brightness = 1
+        else
+            game.Lighting.FogEnd = 1000
+            game.Lighting.GlobalShadows = true
+            game.Lighting.Brightness = 2
+        end
+    end
+})
+
+utilityTab:AddToggle({
+    Name = "🔧 Disable Anti-Aliasing",
+    Default = false,
+    Callback = function(state)
+        if state then
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+        else
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+        end
+    end
+})
+
+-- Combat Tab 🎯
+local combatTab = Window:MakeTab({ Name = "Combat 🎯", Icon = "rbxassetid://4483345998", PremiumOnly = false })
+
 combatTab:AddToggle({
     Name = "🎯 Enable Aimbot",
     Default = false,
-    Callback = function(state)
-        _G.AimbotEnabled = state
-    end
+    Callback = function(state) _G.AimbotEnabled = state end
 })
 
 combatTab:AddToggle({
     Name = "🤫 Silent Aim",
     Default = false,
-    Callback = function(state)
-        _G.SilentAim = state
-    end
+    Callback = function(state) _G.SilentAim = state end
 })
 
 -- Aimbot Logic
 local function getClosestPlayer()
-    local closestPlayer = nil
-    local shortestDistance = math.huge -- Set to a large number initially
-    local localPlayer = game.Players.LocalPlayer
-    local camera = workspace.CurrentCamera
-
-    -- Iterate through all players in the game
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local target = player.Character.HumanoidRootPart
-            local distance = (camera.CFrame.Position - target.Position).Magnitude
-            if distance < shortestDistance then
-                closestPlayer = player
-                shortestDistance = distance
+    local shortest, closest = math.huge, nil
+    local player, camera = game.Players.LocalPlayer, workspace.CurrentCamera
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (camera.CFrame.Position - p.Character.HumanoidRootPart.Position).Magnitude
+            if distance < shortest then
+                shortest, closest = distance, p
             end
         end
     end
-
-    return closestPlayer
+    return closest
 end
 
 local function aimAtPlayer(player)
-    if not player or not player.Character then return end
-    local camera = workspace.CurrentCamera
-    local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
-
-    if humanoidRootPart then
-        local targetPosition = humanoidRootPart.Position
-        local direction = (targetPosition - camera.CFrame.Position).unit
-        local lookAtCFrame = CFrame.new(camera.CFrame.Position, targetPosition)
-        camera.CFrame = lookAtCFrame
+    if player and player.Character then
+        local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, hrp.Position) end
     end
 end
 
--- Aim and shoot if Aimbot is enabled
 game:GetService("RunService").RenderStepped:Connect(function()
     if _G.AimbotEnabled then
-        local closestPlayer = getClosestPlayer()
-
-        if closestPlayer and closestPlayer.Character then
-            aimAtPlayer(closestPlayer)
-
-            if _G.SilentAim then
-                -- Apply silent aim: Adjust shooting direction (the function may differ based on the game's mechanics)
-                -- This typically modifies the gun's fire direction, which is game-dependent.
-            end
-        end
+        local closest = getClosestPlayer()
+        if closest then aimAtPlayer(closest) end
     end
 end)
 
--- Farming Tab
-local farmingTab = Window:MakeTab({
-    Name = "Farming 🌱",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Farming Tab 🌱
+local farmingTab = Window:MakeTab({ Name = "Farming 🌱", Icon = "rbxassetid://4483345998", PremiumOnly = false })
 
 farmingTab:AddButton({
     Name = "🌻 GROW A GARDEN SCRIPT",
@@ -168,64 +176,35 @@ farmingTab:AddButton({
     end
 })
 
--- Blox Fruits Tab with Keyless Script
-local bloxFruitsTab = Window:MakeTab({
-    Name = "Blox Fruits 🍊",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Blox Fruits 🍊
+local bfTab = Window:MakeTab({ Name = "Blox Fruits 🍊", Icon = "rbxassetid://4483345998", PremiumOnly = false })
 
-bloxFruitsTab:AddButton({
+bfTab:AddButton({
     Name = "🍊 BLOX FRUITS SCRIPT",
     Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua"))()
     end
 })
 
--- Deadrails Tab with Auto Bonds and Auto Farm
-local deadrailsTab = Window:MakeTab({
-    Name = "Deadrails 🎮",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Deadrails 🎮
+local drTab = Window:MakeTab({ Name = "Deadrails 🎮", Icon = "rbxassetid://4483345998", PremiumOnly = false })
 
-deadrailsTab:AddButton({
+drTab:AddButton({
     Name = "💎 DEADRAILS AUTO BONDS",
     Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/thiennrb7/Script/refs/heads/main/autobond"))()
     end
 })
 
-deadrailsTab:AddButton({
+drTab:AddButton({
     Name = "⚡ DEADRAILS AUTO FARM",
     Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/Marco8642/science/refs/heads/ok/dead%20rails"))()
     end
 })
 
--- Teleportation Tab
-local teleportTab = Window:MakeTab({
-    Name = "Teleportation 📍",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
-teleportTab:AddButton({
-    Name = "📍 TELEPORT TO RANDOM LOCATION",
-    Callback = function()
-        local randomX = math.random(-100, 100)
-        local randomY = math.random(10, 50)
-        local randomZ = math.random(-100, 100)
-        game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(randomX, randomY, randomZ))
-    end
-})
-
--- Admin Tab
-local adminTab = Window:MakeTab({
-    Name = "Admin 💼",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Admin Tab 💼
+local adminTab = Window:MakeTab({ Name = "Admin 💼", Icon = "rbxassetid://4483345998", PremiumOnly = false })
 
 adminTab:AddButton({
     Name = "🌐 UNIVERSAL SCRIPT",
@@ -234,30 +213,24 @@ adminTab:AddButton({
     end
 })
 
--- Credits Tab 🌟
-local creditsTab = Window:MakeTab({
-    Name = "Credits 🌟",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
+-- Credits 🌟
+local creditsTab = Window:MakeTab({ Name = "Credits 🌟", Icon = "rbxassetid://4483345998", PremiumOnly = false })
 
 creditsTab:AddLabel("🎮 Developer: SHAN GWAPO")
-creditsTab:AddLabel("🙌 Special Thanks to:")
-creditsTab:AddLabel("🔧 OrionLib - @jensonhirst")
-creditsTab:AddLabel("🌟 Roblox Community - For inspiration and feedback")
-creditsTab:AddLabel("📝 Open Source Contributors")
+creditsTab:AddLabel("🙌 Thanks to: OrionLib, Roblox Devs")
+creditsTab:AddLabel("✨ Inspired by: Open Source Creators")
 
 creditsTab:AddButton({
-    Name = "🖱️ Join the Discord Server",
+    Name = "🖱️ Join Discord",
     Callback = function()
         setclipboard("https://discord.gg/aCwcQyhS")
         OrionLib:MakeNotification({
-            Name = "Discord Link Copied! 📨",
-            Content = "You can now join the Discord server for updates and support! 🎉",
-            Time = 5
+            Name = "Discord Copied!",
+            Content = "Join SHAN's server for updates 🔗",
+            Time = 4
         })
     end
 })
 
--- Initialize GUI
+-- Final Init
 OrionLib:Init()
